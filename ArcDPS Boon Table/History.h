@@ -24,26 +24,31 @@ public:
 	void Reset(cbtevent* event);
 
 	// Requires a call to lock() for the whole duration of the usage of the return value.
-	std::optional<size_t> GetTrackerIndexById(uint64_t trackerId);
+	std::optional<size_t> GetTrackerIndexById(uint64_t trackerId, std::unique_lock<std::mutex>& lock);
 	// Requires a call to lock() for the whole duration of the usage of the return value.
-	[[nodiscard]] EntryType::const_iterator begin() const {
+	[[nodiscard]] EntryType::const_iterator begin(std::unique_lock<std::mutex>& lock) const {
+		assert(lock.owns_lock() && lock.mutex() == &entriesMutex);
 		return entries.begin();
 	}
 	// Requires a call to lock() for the whole duration of the usage of the return value.
-	[[nodiscard]] EntryType::const_iterator end() const {
+	[[nodiscard]] EntryType::const_iterator end(std::unique_lock<std::mutex>& lock) const {
+		assert(lock.owns_lock() && lock.mutex() == &entriesMutex);
 		return entries.end();
 	}
 	// Requires a call to lock() for the whole duration of the usage of the return value.
-	EntryType::iterator begin() {
+	EntryType::iterator begin(std::unique_lock<std::mutex>& lock) {
+		assert(lock.owns_lock() && lock.mutex() == &entriesMutex);
 		return entries.begin();
 	}
 	// Requires a call to lock() for the whole duration of the usage of the return value.
-	EntryType::iterator end() {
+	EntryType::iterator end(std::unique_lock<std::mutex>& lock) {
+		assert(lock.owns_lock() && lock.mutex() == &entriesMutex);
 		return entries.end();
 	}
 	// Requires a call to lock() for the whole duration of the usage of the return value.
-	TrackerHistory& operator[](EntryType::size_type val) {
-		return entries[val];
+	TrackerHistory& at(EntryType::size_type val, std::unique_lock<std::mutex>& lock) {
+		assert(lock.owns_lock() && lock.mutex() == &entriesMutex);
+		return entries.at(val);
 	}
 
 	// Locks the entries mutex and returns the lock object. This must be called before all methods marked as such.

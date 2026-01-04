@@ -74,8 +74,9 @@ void History::Reset(cbtevent* event) {
 	currentID = event->src_agent;
 }
 
-std::optional<size_t> History::GetTrackerIndexById(uint64_t trackerId)
+std::optional<size_t> History::GetTrackerIndexById(uint64_t trackerId, std::unique_lock<std::mutex>& lock)
 {
+	assert(lock.owns_lock() && lock.mutex() == &entriesMutex);
 	// Find the index of the entries object with Id set to trackerId
 	for (const auto [i, entry] : entries | std::views::enumerate)
 	{

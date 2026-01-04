@@ -249,7 +249,7 @@ void AppChart::Draw(bool* p_open, ImGuiWindowFlags flags = 0) {
 			trackerPtr = &liveTracker;
 		} else {
 			guardHistory.lock();
-			trackerPtr = &history[currentHistory - 1];
+			trackerPtr = &history.at(currentHistory - 1, guardHistory);
 		}
 
 		// Check if the tracker id changed without the user changing anything.
@@ -257,13 +257,13 @@ void AppChart::Draw(bool* p_open, ImGuiWindowFlags flags = 0) {
 		if (lastTrackerId != trackerPtr->getId() && lastCalculatedHistory == currentHistory)
 		{
 			// Try finding the new index of the tracker
-			std::optional<size_t> newHistoryIndex = history.GetTrackerIndexById(lastTrackerId);
+			std::optional<size_t> newHistoryIndex = history.GetTrackerIndexById(lastTrackerId, guardHistory);
 			if (newHistoryIndex.has_value())
 			{
 				// Found the tracker in history
 				currentHistory = newHistoryIndex.value() + 1;
 				lastCalculatedHistory = currentHistory;
-				trackerPtr = &history[currentHistory - 1];
+				trackerPtr = &history.at(currentHistory - 1, guardHistory);
 			}
 			else
 			{
