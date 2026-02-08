@@ -220,7 +220,10 @@ uintptr_t mod_release()
 
 		lang.saveToFile();
 
-		update_state->FinishPendingTasks();
+		if (update_state)
+		{
+			update_state->FinishPendingTasks();
+		}
 		sequencer.Shutdown();
 		ArcdpsExtension::g_singletonManagerInstance.Shutdown();
 	// } catch(const std::exception& e) {
