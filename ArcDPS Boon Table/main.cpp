@@ -8,6 +8,7 @@
 #include <CrossplatformMocks/Graphic.h>
 #include <CrossplatformMocks/Module.h>
 #include <CrossplatformMocks/Macro.h>
+#include <CrossplatformMocks/String.h>
 #include <charconv>
 
 #include <imgui/imgui.h>
