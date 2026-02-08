@@ -8,6 +8,7 @@
 #include "SettingsUIGlobal.h"
 #include <ArcdpsExtension/Widgets.h>
 #include <magic_enum/magic_enum.hpp>
+#include <CrossplatformMocks/Macro.h>
 
 SettingsUI settingsUi;
 

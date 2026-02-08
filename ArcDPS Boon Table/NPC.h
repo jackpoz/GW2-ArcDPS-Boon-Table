@@ -9,6 +9,7 @@ class NPC : public Entity {
 	
 public:
 	NPC(uintptr_t new_id, const std::string& new_name);
+	NPC() : NPC(0, "") {};
 
 	ImVec4 getColor() const override;
 };

@@ -3,11 +3,11 @@
 */
 
 #include <cstdint>
-#include <Windows.h>
 #include <string>
 #include <regex>
-#include <d3d11.h>
-#include <d3d9.h>
+#include <CrossplatformMocks/Graphic.h>
+#include <CrossplatformMocks/Module.h>
+#include <CrossplatformMocks/Macro.h>
 #include <charconv>
 
 #include <imgui/imgui.h>
@@ -28,8 +28,8 @@
 
 /* proto/globals */
 arcdps_exports arc_exports{};
-extern "C" __declspec(dllexport) void* get_init_addr(char* arcversionstr, void* imguicontext, void* dxptr, HMODULE arcdll, void* mallocfn, void* freefn, UINT dxVer);
-extern "C" __declspec(dllexport) void* get_release_addr();
+CROSSPLATFORM_MOCKS_EXPORT void* get_init_addr(char* arcversionstr, void* imguicontext, void* dxptr, LibraryHandle arcdll, void* mallocfn, void* freefn, UINT dxVer);
+CROSSPLATFORM_MOCKS_EXPORT void* get_release_addr();
 arcdps_exports* mod_init();
 uintptr_t mod_release();
 UINT mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -44,12 +44,11 @@ uintptr_t ProcessEvent(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 
 typedef uint64_t(*arc_export_func_u64)();
 
-HMODULE arc_dll;
-HMODULE self_dll;
+LibraryHandle arc_dll;
+LibraryHandle self_dll;
 LPVOID mapViewOfMumbleFile = nullptr;
 UINT directxVersion;
-IDirect3DDevice9* id3dd9 = nullptr;
-ID3D11Device* id3d11d = nullptr;
+GraphicDevice* id3d11d = nullptr;
 
 std::unique_ptr<ArcdpsExtension::UpdateChecker::UpdateState> update_state = nullptr;
 ArcdpsExtension::EventSequencer sequencer = ArcdpsExtension::EventSequencer(ProcessEvent);
@@ -71,6 +70,7 @@ bool arc_movelock_altui = false;
 bool arc_clicklock_altui = false;
 bool arc_window_fastclose = false;
 
+#ifdef _WIN32
 /* dll main -- winapi */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ulReasonForCall, LPVOID lpReserved) {
 	switch (ulReasonForCall) {
@@ -87,17 +87,31 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ulReasonForCall, LPVOID lpReserved)
 	}
 	return 1;
 }
+#else
+__attribute__((constructor))
+static void init()
+{
+	// Equivalent to DLL_PROCESS_ATTACH
+	// ToDo: implement this crossplatform
+}
+
+__attribute__((destructor))
+static void deinit()
+{
+	// Equivalent to DLL_PROCESS_DETACH
+}
+#endif
 
 // (*fg)(m_version, ImGui::GetCurrentContext(), g_directx == 9 ? (void*)m_gl_pmyIDirect3DDevice9 : m_gl_d3d11swapchain, g_hthisinstance, malloc, free, g_directx);
 /* export -- arcdps looks for this exported function and calls the address it returns */
-extern "C" __declspec(dllexport) void* get_init_addr(char* arcversionstr, void* imguicontext, void* dxptr, HMODULE new_arcdll, void* mallocfn, void* freefn, UINT dxver) {
+CROSSPLATFORM_MOCKS_EXPORT void* get_init_addr(char* arcversionstr, void* imguicontext, void* dxptr, LibraryHandle new_arcdll, void* mallocfn, void* freefn, UINT dxver) {
 	// set all arcdps stuff
 	arc_dll = new_arcdll;
-	arc_export_e5 = (arc_color_func)GetProcAddress(arc_dll, "e5");
-	arc_export_e6 = (arc_export_func_u64)GetProcAddress(arc_dll, "e6");
-	arc_export_e7 = (arc_export_func_u64)GetProcAddress(arc_dll, "e7");
-	arc_log_file = (arc_log_func_ptr)GetProcAddress(arc_dll, "e3");
-	arc_log = (arc_log_func_ptr)GetProcAddress(arc_dll, "e8");
+	arc_export_e5 = GetFunctionAddress<arc_color_func>(arc_dll, "e5");
+	arc_export_e6 = GetFunctionAddress<arc_export_func_u64>(arc_dll, "e6");
+	arc_export_e7 = GetFunctionAddress<arc_export_func_u64>(arc_dll, "e7");
+	arc_log_file = GetFunctionAddress<arc_log_func_ptr>(arc_dll, "e3");
+	arc_log = GetFunctionAddress<arc_log_func_ptr>(arc_dll, "e8");
 
 	PRINT_LINE()
 
@@ -110,20 +124,22 @@ extern "C" __declspec(dllexport) void* get_init_addr(char* arcversionstr, void* 
 	static_cast<ImGuiContext*>(imguicontext)->SettingsLoaded = false;
 
 	if (dxver == 11) {
+#ifdef _WIN32
 		auto swapChain = static_cast<IDXGISwapChain*>(dxptr);
 		swapChain->GetDevice(__uuidof(id3d11d), reinterpret_cast<void**>(&id3d11d));
+#endif
 		directxVersion = 11;
 	} else {
-		// id3dd9 = static_cast<IDirect3DDevice9*>(dxptr);
 		directxVersion = 9;
-	} 
+	}
+    // ToDo: implement this crossplatform
 
-	return mod_init;
+	return reinterpret_cast<void*>(mod_init);
 }
 
 /* export -- arcdps looks for this exported function and calls the address it returns */
-extern "C" __declspec(dllexport) void* get_release_addr() {
-	return mod_release;
+CROSSPLATFORM_MOCKS_EXPORT void* get_release_addr() {
+	return reinterpret_cast<void*>(mod_release);
 }
 
 /* initialize mod -- return table that arcdps will use for callbacks */
@@ -220,6 +236,7 @@ UINT mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	// try {
 		auto const io = &ImGui::GetIO();
 
+#ifdef _WIN32
 		switch (uMsg)
 		{
 		case WM_KEYUP:
@@ -277,6 +294,9 @@ UINT mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		}
+#else
+	// ToDo: implement this for crossplatform
+#endif
 	// } catch (const std::exception& e) {
 	// 	arc_log_file("Boon Table: exception in mod_wnd");
 	// 	arc_log_file(e.what());

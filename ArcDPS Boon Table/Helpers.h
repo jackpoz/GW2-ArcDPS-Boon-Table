@@ -5,6 +5,7 @@
 
 #include <ArcdpsExtension/arcdps_structs.h>
 #include <imgui/imgui.h>
+#include<CrossplatformMocks/Module.h>
 
 // #define PRINT_LINE() arc_log_file(std::format("{}:{}#{}", __FILE__, __FUNCTION__, __LINE__).c_str());
 #define PRINT_LINE();
@@ -47,7 +48,7 @@ std::string to_string(ProgressBarColoringMode coloringMode);
 std::string to_string(const ImVec4& vec4);
 std::optional<ImVec4> ImVec4_color_from_string(const std::string& vec4str);
 
-extern HMODULE self_dll;
+extern LibraryHandle self_dll;
 extern LPVOID mapViewOfMumbleFile;
 extern bool isWvW;
 extern UINT directxVersion;

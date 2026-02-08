@@ -1,6 +1,6 @@
 #include "NPC.h"
 
-NPC::NPC(uintptr_t new_id = 0,
+NPC::NPC(uintptr_t new_id,
 	const std::string& new_name = "") {
 	id = new_id;
 	name = new_name;

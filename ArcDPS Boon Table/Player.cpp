@@ -1,6 +1,6 @@
 #include "Player.h"
 
-Player::Player(uintptr_t new_id = 0,
+Player::Player(uintptr_t new_id,
 	const std::string& new_name = "",
 	const std::string& new_account_name = "",
 	uint8_t new_subgroup = 1,

@@ -1,5 +1,6 @@
 #include "Helpers.h"
 
+#include <cmath>
 #include <sstream>
 
 #include "Lang.h"

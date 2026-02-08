@@ -21,6 +21,7 @@ protected:
 
 public:
 	Player(uintptr_t new_id, const std::string& new_name, const std::string& new_account_name, uint8_t new_subgroup, Prof new_profession, bool new_self);
+    Player() : Player(0, "", "", 1, PROF_UNKNOWN, false) {}
 
 	[[nodiscard]] uint8_t getSubgroup() const override;
 	[[nodiscard]] bool isSelf() const override;
