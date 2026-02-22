@@ -86,7 +86,7 @@ void AppChart::DrawStyleSettingsSubMenu() {
 }
 
 void AppChart::DrawContextMenu() {
-	// ToDo: implement
+	settingsUi.Draw(imGuiTable, index, ImGui::GetCurrentWindow());
 }
 
 void AppChart::DrawContent() {
@@ -153,17 +153,6 @@ void AppChart::DrawContent() {
 #if _DEBUG
 	arc_log(std::format("paddingHeight: {}", paddingHeight).c_str());
 #endif
-
-	/**
-	 * Settings UI
-	 */
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {4.f, 4.f});
-	if (ImGuiEx::BeginPopupContextWindow(nullptr, 1, ImGuiHoveredFlags_ChildWindows)) {
-		settingsUi.Draw(imGuiTable, index, currentWindow);
-
-		ImGui::EndPopup();
-	}
-	ImGui::PopStyleVar();
 
 	// columns: charname | subgroup | tracked_buffs
 	const int columnCount = tracked_buffs.size() + 3;
