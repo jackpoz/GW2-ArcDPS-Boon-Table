@@ -19,20 +19,80 @@ AppChartsContainer charts;
 namespace Table = ImGuiEx::BigTable;
 using ArcdpsExtension::Localization;
 
-void AppChart::Draw(bool* p_open, ImGuiWindowFlags flags = 0) {
+AppChart::AppChart(int new_index) : ArcdpsExtension::MainWindow(), index(new_index) {
+	windowID = "Boon Table";
+	if (index > 0)
+		windowID += std::to_string(index);
+
+	RegisterPreDrawHook([this](ImGuiWindowFlags& flags) {
+		flags |= ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+
+		if (settings.getPosition(index) != Position::Manual) {
+			flags |= ImGuiWindowFlags_NoMove;
+		}
+	});
+}
+
+bool& AppChart::GetOpenVar() {
+	return settings.isShowChart(index);
+}
+
+std::string_view AppChart::getTitleDefault() {
+    return Localization::STranslate(BT_WindowHeader);
+}
+
+std::optional<std::string>& AppChart::getTitle() {
+	return settings.getTitleBar(index);
+}
+
+std::string_view AppChart::getWindowID() {
+	return windowID;
+}
+
+bool& AppChart::getShowTitleBar() {
+    return settings.isHideHeader(index);
+}
+
+bool& AppChart::getShowBackground() {
+	return settings.isShowBackground(index);
+}
+
+std::optional<ImVec2>& AppChart::getPadding() {
+	return settings.getWindowPadding(index);
+}
+
+SizingPolicy& AppChart::getSizingPolicy() {
+	return mSizingPolicy;
+}
+
+bool AppChart::getMaxHeightActive() {
+	return settings.getMaxDisplayed(index) > 0 && rowCount >= settings.getMaxDisplayed(index);
+}
+
+std::optional<std::string>& AppChart::getAppearAsInOption() {
+    return mAppearAsInOptionOpt;
+}
+
+std::string_view AppChart::getAppearAsInOptionDefault() {
+    return mAppearAsInOptionDefault;
+}
+
+bool& AppChart::GetShowScrollbar() {
+    return mShowScrollbar;
+}
+
+void AppChart::DrawStyleSettingsSubMenu() {
+	MainWindow::DrawStyleSettingsSubMenu();
+}
+
+void AppChart::DrawContextMenu() {
+	// ToDo: implement
+}
+
+void AppChart::DrawContent() {
 	PRINT_LINE()
 
-	const std::optional<ImVec2>& windowPadding = settings.getWindowPadding(index);
-	bool windowPaddingActive = windowPadding.has_value();
-	if (windowPadding) {
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, windowPadding.value());
-	}
-
-	bool maxDisplayedEnabled = false;
-	if (settings.getMaxDisplayed(index) > 0 && rowCount >= settings.getMaxDisplayed(index)) {
-		maxDisplayedEnabled = true;
-	}
-	if (maxDisplayedEnabled) {
+	if (getMaxHeightActive()) {
 		// add the innertable position to the maxHeight
 		maxHeight += innerTableCursorPos;
 #if _DEBUG
@@ -43,6 +103,7 @@ void AppChart::Draw(bool* p_open, ImGuiWindowFlags flags = 0) {
 		overriddenHeight = std::max(overriddenHeight, 50.f);
 		minHeight = std::max(minHeight, overriddenHeight);
 		maxHeight = std::max(maxHeight, overriddenHeight);
+		SetMaxHeightCursorPos(maxHeight - ImGui::GetStyle().WindowPadding.y);
 	} else {
 		minHeight = titleBarHeight + ImGui::GetStyle().WindowPadding.y + 5.f;
 		maxHeight = FLT_MAX;
@@ -53,45 +114,10 @@ void AppChart::Draw(bool* p_open, ImGuiWindowFlags flags = 0) {
 	arc_log(std::format("maxHeight: {}", maxHeight).c_str());
 #endif
 	
-	ImGui::SetNextWindowSizeConstraints(ImVec2(50.f, minHeight), ImVec2(FLT_MAX, maxHeight));
-
 	rowCount = 0;
 	maxHeight = 0;
 	minHeight = 0;
 	innerTableCursorPos = 0;
-
-	flags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-
-	SizingPolicy sizingPolicy = settings.getSizingPolicy(index);
-	switch (sizingPolicy) {
-		case SizingPolicy::SizeToContent:
-			flags |= ImGuiWindowFlags_AlwaysAutoResize;
-			break;
-	}
-	if (settings.isHideHeader(index)) {
-		flags |= ImGuiWindowFlags_NoTitleBar;
-	}
-
-	if (!settings.isShowBackground(index)) {
-		flags |= ImGuiWindowFlags_NoBackground;
-	}
-
-	if (settings.getPosition(index) != Position::Manual) {
-		flags |= ImGuiWindowFlags_NoMove;
-	}
-
-	std::string titleBarStr;
-	const auto& titleBarSet = settings.getTitleBar(index);
-	if (titleBarSet) {
-		titleBarStr = titleBarSet.value();
-	} else {
-		titleBarStr = Localization::STranslate(BT_WindowHeader);
-	}
-	titleBarStr.append("###Boon Table");
-	if (index > 0)
-		titleBarStr.append(std::to_string(index));
-	
-	ImGui::Begin(titleBarStr.c_str(), p_open, flags);
 
 	ImGuiWindow* currentWindow = ImGui::GetCurrentWindow();
 
@@ -149,6 +175,7 @@ void AppChart::Draw(bool* p_open, ImGuiWindowFlags flags = 0) {
 	int tableFlags = ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable | ImGuiTableFlags_Resizable |
 		ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_NoBordersInBody;
 
+	auto sizingPolicy = getSizingPolicy();
 	switch (sizingPolicy) {
 		case SizingPolicy::ManualWindowSize:
 			tableFlags |= ImGuiTableFlags_ScrollX;
@@ -447,12 +474,6 @@ void AppChart::Draw(bool* p_open, ImGuiWindowFlags flags = 0) {
 	} else {
 		++nthTick;
 	}
-
-	ImGui::End();
-
-	if (windowPaddingActive) {
-		ImGui::PopStyleVar();
-	}
 }
 
 
@@ -658,9 +679,6 @@ void AppChartsContainer::sortNeeded() {
 void AppChartsContainer::drawAll(ImGuiWindowFlags flags) {
 	PRINT_LINE()
 	for (AppChart& chart : charts) {
-		bool& showChart = settings.isShowChart(chart.index);
-		if (showChart) {
-			chart.Draw(&showChart, flags);
-		}
+		chart.Draw(flags);
 	}
 }

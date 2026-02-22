@@ -61,7 +61,7 @@ bool Settings::isShowLabel(int tableIndex) const {
 	return tables[tableIndex].show_label;
 }
 
-bool Settings::isHideHeader(int tableIndex) const {
+bool& Settings::isHideHeader(int tableIndex) {
 	return tables[tableIndex].hide_header;
 }
 
@@ -77,7 +77,7 @@ bool Settings::isShowOnlySubgroup(int tableIndex) const {
 	return tables[tableIndex].show_only_subgroup;
 }
 
-bool Settings::isShowBackground(int tableIndex) const {
+bool& Settings::isShowBackground(int tableIndex) {
 	return tables[tableIndex].show_background;
 }
 
@@ -109,7 +109,7 @@ int Settings::getMaxDisplayed(int tableIndex) const {
 	return tables[tableIndex].max_displayed;
 }
 
-const std::optional<ImVec2>& Settings::getWindowPadding(int tableIndex) const {
+std::optional<ImVec2>& Settings::getWindowPadding(int tableIndex) {
 	return tables[tableIndex].window_padding;
 }
 
@@ -129,7 +129,7 @@ const std::string& Settings::getAppearAsInOption(int tableIndex) const {
 	return tables[tableIndex].appear_as_in_option;
 }
 
-const std::optional<std::string>& Settings::getTitleBar(int tableIndex) const {
+std::optional<std::string>& Settings::getTitleBar(int tableIndex) {
 	return tables[tableIndex].title_bar;
 }
 

@@ -41,11 +41,11 @@ public:
 	[[nodiscard]] ProgressBarColoringMode getShowColored(int tableIndex) const;
 	[[nodiscard]] bool isAlternatingRowBg(int tableIndex) const;
 	[[nodiscard]] bool isShowLabel(int tableIndex) const;
-	[[nodiscard]] bool isHideHeader(int tableIndex) const;
+	[[nodiscard]] bool& isHideHeader(int tableIndex);
 	[[nodiscard]] SizingPolicy getSizingPolicy(int tableIndex) const;
 	[[nodiscard]] float getBoonColumnWidth(int tableIndex) const;
 	[[nodiscard]] bool isShowOnlySubgroup(int tableIndex) const;
-	[[nodiscard]] bool isShowBackground(int tableIndex) const;
+	[[nodiscard]] bool& isShowBackground(int tableIndex);
 	[[nodiscard]] Position getPosition(int tableIndex) const;
 	[[nodiscard]] CornerPosition getCornerPosition(int tableIndex) const;
 	[[nodiscard]] const ImVec2& getCornerVector(int tableIndex) const;
@@ -53,11 +53,11 @@ public:
 	[[nodiscard]] CornerPosition getSelfPanelCornerPosition(int tableIndex) const;
 	[[nodiscard]] ImGuiID getFromWindowID(int tableIndex) const;
 	[[nodiscard]] int getMaxDisplayed(int tableIndex) const;
-	[[nodiscard]] const std::optional<ImVec2>& getWindowPadding(int tableIndex) const;
+	[[nodiscard]] std::optional<ImVec2>& getWindowPadding(int tableIndex);
 	[[nodiscard]] uint8_t getCurrentHistory(int tableIndex) const;
 	[[nodiscard]] int getMaxPlayerLength(int tableIndex) const;
 	[[nodiscard]] const std::string& getAppearAsInOption(int tableIndex) const;
-	[[nodiscard]] const std::optional<std::string>& getTitleBar(int tableIndex) const;
+	[[nodiscard]] std::optional<std::string>& getTitleBar(int tableIndex);
 	[[nodiscard]] bool isScrollbar(int tableIndex) const;
 	[[nodiscard]] bool isTablePaddingX(int tableIndex) const;
 

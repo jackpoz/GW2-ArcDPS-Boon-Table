@@ -2,6 +2,8 @@
 
 #include <functional>
 #include <mutex>
+#include <optional>
+#include <string>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -9,16 +11,17 @@
 #include "BuffIds.h"
 #include "Settings.h"
 #include "BigTable/BigTable.h"
+#include <ArcdpsExtension/Windows/MainWindow.h>
 
-class AppChart
+class AppChart final : public ArcdpsExtension::MainWindow
 {
 	friend class AppChartsContainer;
 public:
 	std::atomic_bool needSort;
 	
-	AppChart(int new_index) : index(new_index) {};
+	AppChart(int new_index);
+	bool& GetOpenVar() override;
 
-	void Draw(bool* p_open, ImGuiWindowFlags flags);
 	void DrawRow(Alignment alignment, std::string_view charnameText, const char* subgroupText, std::function<float(const BoonDef&)> uptimeFunc, std::function<float()>
 	             above90Func, bool hasEntity = false, const IEntity* const entity = nullptr, bool hasColor = false, const ImVec4& color = ImVec4(0, 0, 0, 0));
 
@@ -32,6 +35,21 @@ public:
 	void addPlayer(size_t playerId);
 
 private:
+	void DrawContextMenu() override;
+	void DrawContent() override;
+	std::string_view getTitleDefault() override;
+	std::optional<std::string>& getTitle() override;
+	std::string_view getWindowID() override;
+	bool& getShowTitleBar() override;
+	bool& getShowBackground() override;
+	std::optional<ImVec2>& getPadding() override;
+	SizingPolicy& getSizingPolicy() override;
+	bool getMaxHeightActive() override;
+	std::optional<std::string>& getAppearAsInOption() override;
+	std::string_view getAppearAsInOptionDefault() override;
+	void DrawStyleSettingsSubMenu() override;
+	bool& GetShowScrollbar() override;
+
 	uint8_t getCurrentHistory() const;
 
 	ImGuiEx::BigTable::ImGuiTable* imGuiTable = nullptr;
@@ -48,6 +66,13 @@ private:
 	float innerTableCursorPos = 0;
 	uint8_t nthTick = 0;
 
+	std::string windowID;
+	bool mShowScrollbar = false;
+	SizingPolicy mSizingPolicy = SizingPolicy::SizeToContent;
+	int mCurrentRow = 0;
+	std::optional<std::string> mAppearAsInOptionOpt;
+	const std::string mAppearAsInOptionDefault = "Demo Window";
+
 	void endOfRow();
 };
 
@@ -55,7 +80,6 @@ class AppChartsContainer {
 public:
 	void removePlayer(uintptr_t playerId);
 	void addPlayer(uintptr_t playerId);
-	void clearPlayers();
 	void sortNeeded();
 	void drawAll(ImGuiWindowFlags flags);
 	
