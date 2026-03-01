@@ -11,7 +11,7 @@ bool& Settings::isShowChart(int tableIndex) {
 	return tables[tableIndex].show;
 }
 
-Alignment Settings::getAlignment(int tableIndex) const {
+Alignment& Settings::getAlignment(int tableIndex) {
 	return tables[tableIndex].alignment;
 }
 
@@ -57,7 +57,7 @@ bool Settings::isAlternatingRowBg(int tableIndex) const {
 	return tables[tableIndex].alternating_row_bg;
 }
 
-bool Settings::isShowLabel(int tableIndex) const {
+bool& Settings::isShowLabel(int tableIndex) {
 	return tables[tableIndex].show_label;
 }
 
@@ -105,7 +105,7 @@ ImGuiID Settings::getFromWindowID(int tableIndex) const {
 	return tables[tableIndex].from_window_id;
 }
 
-int Settings::getMaxDisplayed(int tableIndex) const {
+int& Settings::getMaxDisplayed(int tableIndex) {
 	return tables[tableIndex].max_displayed;
 }
 

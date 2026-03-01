@@ -31,6 +31,8 @@ AppChart::AppChart(int new_index) : ArcdpsExtension::MainWindow(), index(new_ind
 			flags |= ImGuiWindowFlags_NoMove;
 		}
 	});
+
+	mTable = std::make_unique<AppChartTable>(this, index);
 }
 
 bool& AppChart::GetOpenVar() {
@@ -87,6 +89,7 @@ void AppChart::DrawStyleSettingsSubMenu() {
 
 void AppChart::DrawContextMenu() {
 	settingsUi.Draw(imGuiTable, index, ImGui::GetCurrentWindow());
+	mTable->DrawColumnSetupMenu();
 }
 
 void AppChart::DrawContent() {
@@ -154,6 +157,8 @@ void AppChart::DrawContent() {
 	arc_log(std::format("paddingHeight: {}", paddingHeight).c_str());
 #endif
 
+	mTable->Draw();
+	/*
 	// columns: charname | subgroup | tracked_buffs
 	const int columnCount = tracked_buffs.size() + 3;
 	// last 3 possible elements are hardcoded ones
@@ -201,9 +206,6 @@ void AppChart::DrawContent() {
 		Alignment alignment = settings.getAlignment(index);
 		bool showLabel = settings.isShowLabel(index);
 
-		/*
-		 * HEADER
-		 */
 		std::string_view charName = Localization::STranslate(BT_NameColumnHeader);
 		std::string_view subgroupName = Localization::STranslate(BT_SubgroupColumnHeader);
 
@@ -309,9 +311,6 @@ void AppChart::DrawContent() {
 			lastCalculatedHistory = currentHistory;
 		}
 
-		/*
-		 * SORTING
-		 */
 		if (ImGuiTableSortSpecs* sorts_specs = Table::TableGetSortSpecs()) {
 			// Sort our data if sort specs have been changed!
 			if (sorts_specs->SpecsDirty)
@@ -374,9 +373,6 @@ void AppChart::DrawContent() {
 
 		IPlayer* self_player = tracker.getSelfIPlayer();
 
-		/**
-		 * SELF
-		 */
 		if (settings.isShowSelfOnTop(index)) {
 			if (self_player) {
 				DrawRow(alignment, self_player->getName(), std::to_string(self_player->getSubgroup()).c_str(), [&](const BoonDef& boonDef) {
@@ -390,9 +386,6 @@ void AppChart::DrawContent() {
 			Table::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(ImGuiCol_Separator));
 		}
 
-		/*
-		 * PLAYERS
-		 */
 		if (settings.isShowPlayers(index)) {
 			bool onlySubgroup = settings.isShowOnlySubgroup(index);
 			auto group_filter = [&self_player, onlySubgroup, &tracker](const size_t& playerIdx) {
@@ -415,9 +408,6 @@ void AppChart::DrawContent() {
 			}
 		}
 
-		/*
-		 * SUBGROUPS
-		 */
 		if (settings.isShowSubgroups(tracker, index)) {
 			Table::TableNextRow();
 			Table::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(ImGuiCol_Separator));
@@ -440,9 +430,6 @@ void AppChart::DrawContent() {
 			}
 		}
 
-		/*
-		 * TOTALS
-		 */
 		if (settings.isShowTotal(index)) {
 			DrawRow(alignment, Localization::STranslate(BT_TotalNameColumnValue), Localization::STranslate(BT_TotalSubgroupColumnValue).data(),
 					[&](const BoonDef& boonDef) {
@@ -454,6 +441,7 @@ void AppChart::DrawContent() {
 
 		Table::EndTable();
 	}
+	*/
 
 	if (nthTick >= 10) {
 		nthTick = 0;
@@ -465,7 +453,7 @@ void AppChart::DrawContent() {
 	}
 }
 
-
+/*
 void AppChart::DrawRow(Alignment alignment, std::string_view charnameText, const char* subgroupText, std::function<float(const BoonDef&)> uptimeFunc,
 					   std::function<float()> above90Func, bool hasEntity, const IEntity* const entity, bool hasColor, const ImVec4& color) {
 	Table::TableNextRow();
@@ -518,120 +506,18 @@ void AppChart::DrawRow(Alignment alignment, std::string_view charnameText, const
 
 	endOfRow();
 }
-
-void AppChart::buffProgressBar(const BoonDef& current_buff, float current_boon_uptime, float width, ImVec4 color) const {
-	ProgressBarColoringMode show_colored = settings.getShowColored(index);
-	Alignment alignment = settings.getAlignment(index);
-
-	bool hidden_color = false;
-	if (color.w == 0.f) hidden_color = true;
-
-	if (settings.isShowBoonAsProgressBar(index)) {
-		if (show_colored != ProgressBarColoringMode::Uncolored && !hidden_color) ImGui::PushStyleColor(ImGuiCol_PlotHistogram, color);
-
-		char label[10];
-		if (current_buff.stacking_type == StackingType_intensity) {
-			sprintf(label, "%.1f", current_boon_uptime);
-			current_boon_uptime /= current_buff.max_stacks;
-			// ImGui::ProgressBar(current_boon_uptime, ImVec2(width, ImGui::GetFontSize()), label);
-			ImGuiEx::AlignedProgressBar(current_boon_uptime, ImVec2(width, ImGui::GetFontSize()), label, alignment);
-		} else {
-			sprintf(label, "%.0f%%", 100 * current_boon_uptime);
-			// ImGui::ProgressBar(current_boon_uptime, ImVec2(width, ImGui::GetFontSize()), label);
-			ImGuiEx::AlignedProgressBar(current_boon_uptime, ImVec2(width, ImGui::GetFontSize()), label, alignment);
-		}
-
-		if (show_colored != ProgressBarColoringMode::Uncolored && !hidden_color) ImGui::PopStyleColor();
-	} else {
-		if (show_colored != ProgressBarColoringMode::Uncolored && !hidden_color) {
-			color.w = 1;
-			ImGui::PushStyleColor(ImGuiCol_Text, color);
-		}
-
-		if (current_buff.stacking_type == StackingType_intensity) {
-			//don't show the % for intensity stacking buffs
-			Table::AlignedTextColumn(alignment, "%.1f", current_boon_uptime);
-		} else {
-			Table::AlignedTextColumn(alignment, "%.0f%%", 100 * current_boon_uptime);
-		}
-
-		if (show_colored != ProgressBarColoringMode::Uncolored && !hidden_color) ImGui::PopStyleColor();
-	}
-}
-
-void AppChart::buffProgressBar(const BoonDef& current_buff, float current_boon_uptime, float width) {
-	switch (settings.getShowColored(index)) {
-		case ProgressBarColoringMode::ByPercentage: {
-			float percentage = 0;
-			if (current_buff.stacking_type == StackingType_intensity) {
-				percentage = current_boon_uptime / current_buff.max_stacks;
-			} else {
-				percentage = current_boon_uptime;
-			}
-			ImVec4 _0Color = settings.get0Color();
-			ImVec4 _100Color = settings.get100Color();
-			_0Color = _0Color * (1 - percentage);
-			_100Color = _100Color * percentage;
-			ImVec4 color = _100Color + _0Color;
-			buffProgressBar(current_buff, current_boon_uptime, width, color);
-			break;
-		}
-		default: buffProgressBar(current_buff, current_boon_uptime, width, ImVec4(0, 0, 0, 0));
-	}
-}
-
-void AppChart::buffProgressBar(const BoonDef& current_buff, float current_boon_uptime, float width, const IEntity& entity) const {
-	switch (settings.getShowColored(index)) {
-		case ProgressBarColoringMode::ByProfession:
-			buffProgressBar(current_buff, current_boon_uptime, width, entity.getColor());
-			break;
-		case ProgressBarColoringMode::ByPercentage: {
-			float percentage = 0;
-			if (current_buff.stacking_type == StackingType_intensity) {
-				percentage = current_boon_uptime / current_buff.max_stacks;
-			} else {
-				percentage = current_boon_uptime;
-			}
-			ImVec4 _0Color = settings.get0Color();
-			ImVec4 _100Color = settings.get100Color();
-			_0Color = _0Color * (1 - percentage);
-			_100Color = _100Color * percentage;
-			ImVec4 color = _100Color + _0Color;
-			buffProgressBar(current_buff, current_boon_uptime, width, color);
-			break;
-		}
-		default:
-			buffProgressBar(current_buff, current_boon_uptime, width, ImVec4(0, 0, 0, 0));
-	}
-}
-
-float AppChart::getEntityDisplayValue(const ITracker& tracker, const IEntity& entity, const BoonDef& boon) {
-	return entity.getBoonUptime(boon);
-}
+*/
 
 void AppChart::removePlayer(size_t playerId) {
-	std::lock_guard lock(playerOrderMtx);
-
-	if (getCurrentHistory() != 0) {
-		// We are showing a historical tracker, do not change the player order.
-		return;
-	}
-
-	auto s = playerOrder.size();
-	std::erase_if(playerOrder, [&playerId](const size_t& idx) {
-		return idx == playerId;
-	});
+    mTable->removePlayer(playerId);
 }
 
 void AppChart::addPlayer(size_t playerId) {
-	std::lock_guard lock(playerOrderMtx);
+	mTable->addPlayer(playerId);
+}
 
-	if (getCurrentHistory() != 0) {
-		// We are showing a historical tracker, do not change the player order.
-		return;
-	}
-
-	playerOrder.emplace_back(playerId);
+void AppChart::sortNeeded() {
+	mTable->sortNeeded();
 }
 
 void AppChart::endOfRow() {
@@ -641,10 +527,6 @@ void AppChart::endOfRow() {
 	}
 
 	++rowCount;
-}
-
-uint8_t AppChart::getCurrentHistory() const {
-	return settings.getCurrentHistory(index);
 }
 
 void AppChartsContainer::removePlayer(uintptr_t playerId) {
@@ -661,7 +543,7 @@ void AppChartsContainer::addPlayer(uintptr_t playerId) {
 
 void AppChartsContainer::sortNeeded() {
 	for (AppChart& chart : charts) {
-		chart.needSort = true;
+		chart.sortNeeded();
 	}
 }
 

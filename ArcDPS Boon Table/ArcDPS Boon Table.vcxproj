@@ -154,6 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AppChart.cpp" />
+    <ClCompile Include="AppChartTable.cpp" />
     <ClCompile Include="BigTable\BigTable.cpp" />
     <ClCompile Include="Boon.cpp" />
     <ClCompile Include="BuffIds.cpp" />
@@ -175,6 +176,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppChart.h" />
+    <ClInclude Include="AppChartTable.h" />
     <ClInclude Include="Boon.h" />
     <ClInclude Include="BuffIds.h" />
     <ClInclude Include="Entity.h" />

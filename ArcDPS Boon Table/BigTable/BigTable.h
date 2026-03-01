@@ -1,6 +1,7 @@
 #pragma once
 #include <compare>
 #include <cstdint>
+#include <limits>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>

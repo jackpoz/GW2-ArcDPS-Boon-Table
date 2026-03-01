@@ -31,7 +31,7 @@ public:
 	void saveToFile();
 
 	bool& isShowChart(int tableIndex);
-	[[nodiscard]] Alignment getAlignment(int tableIndex) const;
+	[[nodiscard]] Alignment& getAlignment(int tableIndex);
 	[[nodiscard]] bool isShowSubgroups(const ITracker& tracker, int tableIndex) const;
 	[[nodiscard]] bool isShowSelfOnTop(int tableIndex) const;
 	[[nodiscard]] bool isShowPlayers(int tableIndex) const;
@@ -40,7 +40,7 @@ public:
 	[[nodiscard]] bool isShowBoonAsProgressBar(int tableIndex) const;
 	[[nodiscard]] ProgressBarColoringMode getShowColored(int tableIndex) const;
 	[[nodiscard]] bool isAlternatingRowBg(int tableIndex) const;
-	[[nodiscard]] bool isShowLabel(int tableIndex) const;
+	[[nodiscard]] bool& isShowLabel(int tableIndex);
 	[[nodiscard]] bool& isHideHeader(int tableIndex);
 	[[nodiscard]] SizingPolicy getSizingPolicy(int tableIndex) const;
 	[[nodiscard]] float getBoonColumnWidth(int tableIndex) const;
@@ -52,7 +52,7 @@ public:
 	[[nodiscard]] CornerPosition getAnchorPanelCornerPosition(int tableIndex) const;
 	[[nodiscard]] CornerPosition getSelfPanelCornerPosition(int tableIndex) const;
 	[[nodiscard]] ImGuiID getFromWindowID(int tableIndex) const;
-	[[nodiscard]] int getMaxDisplayed(int tableIndex) const;
+	[[nodiscard]] int& getMaxDisplayed(int tableIndex);
 	[[nodiscard]] std::optional<ImVec2>& getWindowPadding(int tableIndex);
 	[[nodiscard]] uint8_t getCurrentHistory(int tableIndex) const;
 	[[nodiscard]] int getMaxPlayerLength(int tableIndex) const;

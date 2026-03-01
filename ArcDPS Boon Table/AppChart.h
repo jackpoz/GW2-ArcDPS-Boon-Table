@@ -1,6 +1,9 @@
 #pragma once
 
+#include "AppChartTable.h"
+
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -16,20 +19,12 @@
 class AppChart final : public ArcdpsExtension::MainWindow
 {
 	friend class AppChartsContainer;
+	friend class AppChartTable;
 public:
-	std::atomic_bool needSort;
+	void sortNeeded();
 	
 	AppChart(int new_index);
 	bool& GetOpenVar() override;
-
-	void DrawRow(Alignment alignment, std::string_view charnameText, const char* subgroupText, std::function<float(const BoonDef&)> uptimeFunc, std::function<float()>
-	             above90Func, bool hasEntity = false, const IEntity* const entity = nullptr, bool hasColor = false, const ImVec4& color = ImVec4(0, 0, 0, 0));
-
-	void buffProgressBar(const BoonDef& current_buff, float current_boon_uptime, float width, ImVec4 color) const;
-	void buffProgressBar(const BoonDef& current_buff, float current_boon_uptime, float width);
-	void buffProgressBar(const BoonDef& current_buff, float current_boon_uptime, float width, const IEntity& entity) const;
-
-	float getEntityDisplayValue(const ITracker& tracker, const IEntity& entity, const BoonDef& boon);
 
 	void removePlayer(size_t playerId);
 	void addPlayer(size_t playerId);
@@ -50,14 +45,9 @@ private:
 	void DrawStyleSettingsSubMenu() override;
 	bool& GetShowScrollbar() override;
 
-	uint8_t getCurrentHistory() const;
-
 	ImGuiEx::BigTable::ImGuiTable* imGuiTable = nullptr;
+	std::unique_ptr <AppChartTable> mTable;
 	int index = 0;
-	std::vector<size_t> playerOrder;
-	std::mutex playerOrderMtx;
-	uint8_t lastCalculatedHistory = 0;
-	uint64_t lastTrackerId = 0;
 
 	uint8_t rowCount = 0;
 	float maxHeight = 0;

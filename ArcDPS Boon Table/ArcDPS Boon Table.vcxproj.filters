@@ -81,6 +81,9 @@
     <ClCompile Include="BigTable\BigTable.cpp">
       <Filter>Source Files\BigTable</Filter>
     </ClCompile>
+    <ClCompile Include="AppChartTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Player.h">
@@ -154,6 +157,9 @@
     </ClInclude>
     <ClInclude Include="modernIni\modernIni\modernIni.h">
       <Filter>Header Files\modernIni</Filter>
+    </ClInclude>
+    <ClInclude Include="AppChartTable.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

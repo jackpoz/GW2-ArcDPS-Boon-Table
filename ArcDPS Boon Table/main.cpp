@@ -141,6 +141,8 @@ arcdps_exports* mod_init()
 		// init buffs, this will load the icons into RAM
 		init_tracked_buffs();
 
+		AppChartTable::InitTableColumns();
+
 		ArcdpsExtension::UpdateChecker::instance().ClearFiles(self_dll);
 
 		// check for new version on github
