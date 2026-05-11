@@ -27,6 +27,7 @@
 #include <ArcdpsExtension/Widgets.h>
 #include <imgui/imgui_internal.h>
 #include <ArcdpsUnofficialExtras/Definitions.h>
+#include <format>
 
 /* proto/globals */
 arcdps_exports arc_exports{};
@@ -121,6 +122,13 @@ extern "C" __declspec(dllexport) void* get_release_addr() {
 	return mod_release;
 }
 
+static ImGuiContextHook hookNewFramePre;
+static ImGuiContextHook hookNewFramePost;
+static ImGuiContextHook hookEndFramePre;
+static ImGuiContextHook hookEndFramePost;
+static ImGuiContextHook hookRenderPre;
+static ImGuiContextHook hookRenderPost;
+
 /* initialize mod -- return table that arcdps will use for callbacks */
 arcdps_exports* mod_init()
 {
@@ -130,6 +138,50 @@ arcdps_exports* mod_init()
 	std::expected<ArcdpsExtension::UpdateCheckerBase::Version, std::string> currentVersion = std::unexpected("Not initialized");
 	
 	try {
+		ImGuiContext& g = *GImGui;
+
+        hookNewFramePre.Type = ImGuiContextHookType_NewFramePre;
+		hookNewFramePre.Callback = [](ImGuiContext* ctx, ImGuiContextHook* hook) {
+			auto s = std::format("NewFramePre | KeyCtrl: {} | VK_CONTROL: {}\n", ctx->IO.KeyCtrl, (GetKeyState(VK_CONTROL) & 0x8000) != 0);
+			OutputDebugStringA(s.c_str());
+		};
+		ImGui::AddContextHook(&g, &hookNewFramePre);
+
+		hookNewFramePost.Type = ImGuiContextHookType_NewFramePost;
+		hookNewFramePost.Callback = [](ImGuiContext* ctx, ImGuiContextHook* hook) {
+			auto s = std::format("NewFramePost | KeyCtrl: {} | VK_CONTROL: {}\n", ctx->IO.KeyCtrl, (GetKeyState(VK_CONTROL) & 0x8000) != 0);
+			OutputDebugStringA(s.c_str());
+		};
+		ImGui::AddContextHook(&g, &hookNewFramePost);
+
+		hookEndFramePre.Type = ImGuiContextHookType_EndFramePre;
+		hookEndFramePre.Callback = [](ImGuiContext* ctx, ImGuiContextHook* hook) {
+			auto s = std::format("EndFramePre | KeyCtrl: {} | VK_CONTROL: {}\n", ctx->IO.KeyCtrl, (GetKeyState(VK_CONTROL) & 0x8000) != 0);
+			OutputDebugStringA(s.c_str());
+			};
+		ImGui::AddContextHook(&g, &hookEndFramePre);
+
+		hookEndFramePost.Type = ImGuiContextHookType_EndFramePost;
+		hookEndFramePost.Callback = [](ImGuiContext* ctx, ImGuiContextHook* hook) {
+			auto s = std::format("EndFramePost | KeyCtrl: {} | VK_CONTROL: {}\n", ctx->IO.KeyCtrl, (GetKeyState(VK_CONTROL) & 0x8000) != 0);
+			OutputDebugStringA(s.c_str());
+			};
+		ImGui::AddContextHook(&g, &hookEndFramePost);
+
+		hookRenderPre.Type = ImGuiContextHookType_RenderPre;
+		hookRenderPre.Callback = [](ImGuiContext* ctx, ImGuiContextHook* hook) {
+			auto s = std::format("RenderPre | KeyCtrl: {} | VK_CONTROL: {}\n", ctx->IO.KeyCtrl, (GetKeyState(VK_CONTROL) & 0x8000) != 0);
+			OutputDebugStringA(s.c_str());
+			};
+		ImGui::AddContextHook(&g, &hookRenderPre);
+
+		hookRenderPost.Type = ImGuiContextHookType_RenderPost;
+		hookRenderPost.Callback = [](ImGuiContext* ctx, ImGuiContextHook* hook) {
+			auto s = std::format("RenderPost | KeyCtrl: {} | VK_CONTROL: {}\n", ctx->IO.KeyCtrl, (GetKeyState(VK_CONTROL) & 0x8000) != 0);
+			OutputDebugStringA(s.c_str());
+			};
+		ImGui::AddContextHook(&g, &hookRenderPost);
+
 		// load settings
 		settings.readFromFile();
 
@@ -175,7 +227,7 @@ arcdps_exports* mod_init()
 	if (loading_successful) {
 		arc_exports.size = sizeof(arcdps_exports);
 		arc_exports.sig = 0x64003268;//from random.org
-		arc_exports.wnd_nofilter = mod_wnd;
+		//arc_exports.wnd_nofilter = mod_wnd;
 		arc_exports.combat = mod_combat;
 		arc_exports.imgui = mod_imgui;
 		arc_exports.options_end = mod_options;
@@ -478,9 +530,10 @@ void mod_imgui(uint32_t not_charsel_or_loading, uint32_t hide_if_combat_or_ooc)
 
 		if (!not_charsel_or_loading) return;
 
-		PRINT_LINE()
+		auto s = std::format("mod_imgui | KeyCtrl: {} | VK_CONTROL: {}\n", ImGui::GetIO().KeyCtrl, (GetKeyState(VK_CONTROL) & 0x8000) != 0);
+		OutputDebugStringA(s.c_str());
 
-		auto io = &ImGui::GetIO();
+		PRINT_LINE()
 
 		if (KeysDown::IsKeyDown(arc_global_mod1) && KeysDown::IsKeyDown(arc_global_mod2)) {
 			std::vector<int> keysPressed;
